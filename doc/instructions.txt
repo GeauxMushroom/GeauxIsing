@@ -1,0 +1,138 @@
+		An LA-SiGMA Software Distribution
+GPU Parallel Tempering Simulation of the 3D Edwards-Anderson Model 
+                  Version 0 (r000) - 17 April 2014
+              Copyright 2014 Louisiana State University
+
+
+Description
+===========
+Purpose
+-------
+Efficient Monte Carlo Simulation of equilibrium state of the 3d Edwards-Anderson 
+model, with Parallel Tempering technique used to facilitate equilibration. 
+Please refer to the following paper for more detailed description.
+DOI: 10.1016/j.cpc.2014.05.020
+
+
+
+Specifications and limits
+-------------------------
+This code is optimized for cubic lattice systems, with each dimension no larger 
+than 16.
+The code is implemented with C/CUDA for NVidia GPUs.
+On GTX580(Fermi) it achieves 33.5 picosecond per spin flip attempt.
+
+
+Extent of testing
+-----------------
+This code is tested with the following setups: 
+Intel Core i7 x990 CPU
+NVIDIA GeForce GTX 580 GPU card
+Linux 2.6.32 x86-64 
+CUDA toolkit version 4.1
+gcc 4.4.6
+
+
+Documentation of Features
+=========================
+Input file formats
+------------------
+The program takes no command-line arguments and does not read any 
+input files, instead parameters are set in an include file parameters.h. 
+The program must be rebuilt each time the file is edited.
+
+Some simulation parameters:
+BETA_LOW   Lowest beta used for simulation
+BETA_HIGH  Highest beta used for simulation
+H	   External field, in units of J
+RANDJ	   If defined, the code simulates a disordered system, i.e, the nearest 
+	   neighbor coupling is randomly +/-1. Otherwise an simple Ising 
+	   system is studied. 
+SZ	   Size of each dimension of the cubic system.
+GD	   Number of threadblocks used in simulation.
+TperB	   Number of Threads per threadblock used in simulation. Note that TperB 
+	   should be equal to BDx0 * BDy0 * BDz0.
+BDx0	   Number of threads that iterates though the x dimension of system.
+BDy0	   Number of threads that iterates though the y dimension of system.
+BDz0	   Number of threads that iterates though the z dimension of system.
+
+
+
+Output format
+-------------
+HDF5 output file with the following datasets:
+DATASET name	      	  Content
+q			  The spin glass overlap of momentum zero .
+
+qk_real_01~qk_real_03 	  The real part of spin glass overlap of momentum
+			   (2Pi/L,0,0), (0,2Pi/L,0) and (0,0,2Pi/L) 
+
+qk_imag_01~qk_imag_03 	  The imaginary part of spin glass overlap of momentum
+			  (2Pi/L,0,0), (0,2Pi/L,0) and (0,0,2Pi/L) .
+
+qk_real_04~qk_real_09 	  The real part of spin glass overlap of momentum 
+ 			  (2Pi/L,2Pi/L,0) and equivalent points related by point
+			  group symmetry.
+
+qk_imag_04~qk_imag_09 	  The imaginary part of spin glass overlap of momentum 
+			  (2Pi/L,2Pi/L,0) and equivalent points related by point
+			  group symmetry.
+
+
+Packaged input data
+===================
+Scientific significance
+-----------------------
+Please refer to papers.
+arXiv:1403.4560 
+arXiv:1311.5582
+DOI: 10.1016/j.cpc.2014.05.020
+
+
+Setup and Go
+============
+Prerequisites
+-------------
+The code is tested with the following configuration:
+A CUDA capable GPU with compute capability 2.0 or above
+A x86-64 CPU
+Linux 2.6.32 x86-64 
+CUDA toolkit version 4
+HDF5 1.8.10 (h5pcc required)
+openmpi 1.6.2
+gcc 4.4.6
+
+Also, the user is expected to have some Linux command line experience.
+
+Step-by-Step
+------------
+1. Download the package from ...
+2. Extract the package into PATH
+3. Change into the directory with:
+   $ cd PATH/src
+4. Modify the simulation parameters specified in paramter.h (if needed).
+   $ emacs parameter.h 
+5. Compile the program with:
+   $ make
+6. Run the program:
+   $ mpirun -np TOTAL_NUMBER_OF_GPUS 
+     -npernode NUMBER_OF_GPUS_PER_NODE 
+     ./mpi_ising
+7. See results in the output directory "L??H??_??_??_DATA_TIME" and verify. 
+8. Repeat step 4~7 if more simulation with different parameters are needed.
+
+Development History
+====================
+Code Origin
+-----------
+This package written by the LA-SiGMA Ising group at LSU, it is not 
+based on or a port of any other code.
+
+This software contains source code (cuda util) provided by NVIDIA Corporation.
+This software contains source code (Random123) provided by D. E. Shaw Research.
+
+
+
+Changes in each release
+-----------------------
+First release.
