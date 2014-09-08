@@ -62,7 +62,7 @@ typedef u_int32_t PROB_DATATYPE;
 
 
 // Multispin Coding for 32 bit unsighed integer
-#include "bit32.h"
+//#include "bit32.h"
 //#include "bit64.h"
 
 // string length for file names, etc.

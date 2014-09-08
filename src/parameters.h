@@ -54,7 +54,7 @@
 #define ITER_WARMUP          0
 #define ITER_WARMUP_KERN     0
 #define ITER_WARMUP_KERNFUNC 0
-#define ITER_SWAP            80000
+#define ITER_SWAP            1000000
 #define ITER_SWAP_KERN       1000
 #define ITER_SWAP_KERNFUNC   10
 
@@ -68,7 +68,7 @@
 
 // lattice size, must be even
 
-#define L 16
+#define L 12
 #define L_HF (L / 2)
 #define SZ_CUBE (L * L * L)
 #define SZ_CUBE_HF (SZ_CUBE / 2)
@@ -84,7 +84,7 @@
 #define GD 32
 #define GD_HF 16
 
-#define TperB 256
+#define TperB 144
 // checkerboard 3D block
 #define BDx0 L_HF
 #define BDy0 L
