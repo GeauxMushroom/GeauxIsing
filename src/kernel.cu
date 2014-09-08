@@ -1,7 +1,6 @@
 #include "COPYING"
 
 
-#include <stdlib.h>
 #include <stdio.h>
 
 #include <cuda.h>
@@ -10,7 +9,6 @@
 
 #include "sim.h"
 #include "sim.cuh"
-
 
 #include "kernel_l3.cu"
 #include "kernel_l2.cu"

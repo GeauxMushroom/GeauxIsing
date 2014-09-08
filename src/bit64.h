@@ -5,9 +5,9 @@
 #define BIT64_H
 
 
-//#include <stdint.h>
+#include <stdint.h>
 
-
+#define ACMSC_FORMAT 0
 
 /*
   LENG -           length of an integer
@@ -31,25 +31,19 @@
 
 
 
-typedef u_int64_t MSC_DATATYPE;
+typedef int64_t MSC_DATATYPE;
 #define LENG 64
 #define NBETA_MAX LENG
 #define MASK_A  0xffffffffffffffff
 
 
-////////////////////////////////////////////////////////////////////////
-// gpu_stencil_01.cu
-// gpu_stencil_11.cu
-
-
-#if ALLOCATION == SHARED || ALLOCATION == SEPARATED
-#if DENSE == COMPACT && MSCT == 4
 
 #define NBETA 56
 #define NBETA_PER_WORD 56
 #define NWORD 1
+#define NBIT_PER_SEG 4
 
-#if MSC_FORMAT == 0
+#if ACMSC_FORMAT == 0
 #define NSEG_PER_WORD 14
 #define NBETA_PER_SEG 4
 #define MASK_J  0xfc00000000000000
@@ -80,15 +74,12 @@ typedef u_int64_t MSC_DATATYPE;
   MASK_J5 1000 00-- 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000
   MASK_S  ---- ---- 0001 0001 0001 0001 0001 0001 0001 0001 0001 0001 0001 0001 0001 0001 
   MASK_S0 ---- ---- 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111
-  iter0                *    *    *    *    *    *
-  iter1               *    *    *    *    *    *
-  iter2              *    *    *    *    *    *
-  iter3             *    *    *    *    *    *
+  iter0                *    *    *    *    *    *    *    *    *    *    *    *    *    *
+  iter1               *    *    *    *    *    *    *    *    *    *    *    *    *    *  
+  iter2              *    *    *    *    *    *    *    *    *    *    *    *    *    *
+  iter3             *    *    *    *    *    *    *    *    *    *    *    *    *    *
 */
 
-
-#endif
-#endif
 
 
 

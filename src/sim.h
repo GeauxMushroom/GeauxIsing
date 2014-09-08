@@ -4,72 +4,29 @@
 #ifndef SIM_H
 #define SIM_H
 
-
+#include <stdint.h>
 #include "parameters.h"
 
 #define PI 3.141592654f
 
-
-
-// calculate probablities
-// __expf (2 * energy * temp_beta_shared[b]);
-// temp_prob_shared[16 * b + (energy << 1) + spin];
-#define DIRECT_COMPUTE 0
-#define TABLE_LOOKUP 1
-//typedef float PROB_DATATYPE;
-typedef u_int32_t PROB_DATATYPE;
-#define U_INT32_T_MAX 0xffffffff
-
-
-
-
-
-// storage allocation for 2 sublattices
-#define SHARED 0
-#define SEPARATED 1
-#define INTEGRATED 2
-#define INTEGRATED2 3
-
-
-// bit packaging format
-#define SPARSE 0
-#define COMPACT 1
-
-
-
-
-
-#define PROB_GEN TABLE_LOOKUP
-
-#define ALLOCATION SHARED
-//#define ALLOCATION SEPARATED
-//#define ALLOCATION INTEGRATED
-//#define ALLOCATION INTEGRATED2
-
-//#define DENSE SPARSE
-#define DENSE COMPACT
-
-// Multispin Coding, MSCT = 1, 3, 4
-#define MSCT 4
-
-// MSC encoding alternatives, MSC_FORMAT = 0, 1
-// !!!!!!!!  1 IS BUGGY !!!!!!!!
-#define MSC_FORMAT 0
-
-
-
-
-
-
-// Multispin Coding for 32 bit unsighed integer
-//#include "bit32.h"
-//#include "bit64.h"
-
 // string length for file names, etc.
 #define STR_LENG 64
 
+// Multispin Coding using 32 bit integer
+//#include "bit32.h"
+#include "bit64.h"
 
- /*
+
+
+
+/*
+   probablities
+
+
+   __expf (2 * energy * temp_beta_shared[b]);
+   temp_prob_shared[16 * b + (energy << 1) + spin];
+
+
    probability = expf (2 * beta * (energy - H * spin))
    prob []
 
@@ -95,14 +52,20 @@ typedef u_int32_t PROB_DATATYPE;
    12     6       -1     6+H
    13     6       +1     6-H
  */
+
 #define NPROB 14
 #define NPROB_MAX 16
+//typedef float PROB_DATATYPE;
+typedef uint32_t PROB_DATATYPE;
+#define UINT32_MAX 0xffffffff
 
 
 
 
 
-// s structure should better allign on 4 byte boundary
+
+
+// better allign on 4 byte boundary
 
 typedef struct
 {

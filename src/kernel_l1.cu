@@ -131,7 +131,7 @@ kernel_rearrange (Parameter para)
 
     for (int i = 0; i < NSEG_PER_WORD; i++) {
       for (int j = 0; j < NBETA_PER_SEG; j++) {
-	int position = MSCT * i + j;
+	int position = NBIT_PER_SEG * i + j;
 	int b = NBETA_PER_SEG * i + j;
 	MSC_DATATYPE tmp = oldword >> position & 1;
 	tmp <<= temp_idx_shared[b];

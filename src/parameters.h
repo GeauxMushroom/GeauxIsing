@@ -10,7 +10,7 @@
 #define BETA_HIGH 1.8f
 
 // external field
-#define H 0.0f
+#define H 0.1f
 //#define H 1.0f
 
 // randomly initialize J
@@ -28,17 +28,7 @@
 
 
 // iteration parameters
-
-
-// total monte-carlo sweeps: 2,000,000
-// status samples:           absolutely no more than 10,000, tipically 1,000
-
-// for one realization, each status sample consumes memory:
-//   (NBETA_MAX * sizeof (int)) * 2 = 256B
-// assume assign 32 realiztions on a GPU, memory for saving status:
-//   256 * 32 * 10,000 = 64MB
-
-// simulation time estimzation for 16 realizations, 16^3 cubic lattice
+// wall time estimation for 16 realizations, 16^3 cubic lattice, 2,000,000 MCS
 // NBETA * (16 ^ 3) * 16 * (2 * 10^6) * (50PS/spin) = 170 seconds
 
 
@@ -75,7 +65,7 @@
 
 
 // SM per GPU
-// should implement GD = func (prop.multiProcessorCount);
+// should later implement GD = func (prop.multiProcessorCount);
 
 // GD - blocksPerGrid, must be even
 // BD - threadsPerBlock
@@ -89,8 +79,10 @@
 #define BDx0 L_HF
 #define BDy0 L
 #define BDz0 2
+// BDZ0 == 1 fail ???
+//
 // 1D block
-#define BDx3 TperB//(L * L * 1)
+#define BDx3 TperB
 #define BDy3 1
 #define BDz3 1
 

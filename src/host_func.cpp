@@ -44,11 +44,7 @@ host_init_J (MSC_DATATYPE * l)
   int x, xa, xb, y, ya, yb, z, za, zb;
   int idx;
 
-#if DENSE == SPARSE
-  MSC_DATATYPE mask_s = MASK_S;
-#elif DENSE == COMPACT
   MSC_DATATYPE mask_s = MASK_S0;
-#endif
 
   for (i = 0; i < SZ_CUBE; i++) {
     jx[i] = 1;
@@ -92,12 +88,8 @@ host_init_S (MSC_DATATYPE * l)
 {
 
   MSC_DATATYPE s;
-
-#if DENSE == SPARSE
-  MSC_DATATYPE mask_s = MASK_S;
-#elif DENSE == COMPACT
   MSC_DATATYPE mask_s = MASK_S0;
-#endif
+
 
   for (int i = 0; i < SZ_CUBE; i++) {
     s = 1;
@@ -542,12 +534,6 @@ host_usage (char *bin)
 void
 host_summary (float beta_low, float beta_high, char *mydir)
 {
-
-  char prob_gen[2][16] = { "DIRECT_COMPUTE", "TABLE_LOOKUP" };
-  char allocation[4][16] =
-    { "SHARED", "SEPARATED", "INTEGRATED", "INTEGRATED2" };
-  char dense[2][16] = { "SPARSE", "COMPACT" };
-
   printf ("\n");
   printf ("lattice size:\t\t %d*%d*%d\n", L, L, L);
   printf ("realizations per GPU:\t %d\n", GD);
@@ -563,13 +549,8 @@ host_summary (float beta_low, float beta_high, char *mydir)
   printf ("output dir:\t\t %s\n", mydir);
   printf ("\n");
 
-  printf ("PROB_GEN:\t\t %s\n", prob_gen[PROB_GEN]);
-  printf ("ALLOCATION:\t\t %s\n", allocation[ALLOCATION]);
-  printf ("DENSE:\t\t\t %s\n", dense[DENSE]);
-  printf ("MSCT:\t\t\t %d-%d\n", MSCT, MSC_FORMAT);
   printf ("threads per block:\t %d\n", TperB);
   printf ("blocks per GPU:\t\t %d\n", GD);
   printf ("\n");
 }
-
 
