@@ -107,7 +107,7 @@ mc (float *temp_beta_shared, Parameter para, int iter)
 
 	      //PROB_DATATYPE myrand = curand_uniform (&seed0);	// range: [0,1]
 	      PROB_DATATYPE myrand = curand (&seed0);	// range: [0,UINT32_MAX]
-	      flip |= ((myrand < val) << shift);	// myrand < val ? 1 : 0;
+	      flip |= ((MSC_DATATYPE)(myrand < val) << shift);	// myrand < val ? 1 : 0;
 	    }
 	    c ^= (flip << s);
 	  }
