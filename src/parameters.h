@@ -14,7 +14,7 @@
 //#define H 1.0f
 
 // randomly initialize J
-//#define RANDJ
+#define RANDJ
 #define RANDS
 
 
