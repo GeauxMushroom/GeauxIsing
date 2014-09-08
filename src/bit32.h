@@ -8,11 +8,6 @@
 #include <stdint.h>
 
 
-// ACMSC encoding alternatives, MSC_FORMAT = 0, 1,
-// // !!!!!!!!  1 IS BUGGY !!!!!!!!
-#define MSC_FORMAT 0
-
-
 
 /*
   LENG -           length of an integer
@@ -47,7 +42,7 @@ typedef int32_t MSC_DATATYPE;
 #define NWORD 1
 #define NBIT_PER_SEG 4
 
-#if ACMSC_FORMAT == 0
+
 #define NSEG_PER_WORD 6
 #define NBETA_PER_SEG 4
 #define MASK_J  0xfc000000
@@ -67,7 +62,6 @@ typedef int32_t MSC_DATATYPE;
 #define MASK_S0 0x00ffffff
 #define MASK_E  0xf
 #define SHIFT_MAX 24
-#endif
 /*
   MASK_J  1111 11-- 0000 0000 0000 0000 0000 0000
   MASK_J0 0000 01-- 0000 0000 0000 0000 0000 0000
@@ -85,7 +79,7 @@ typedef int32_t MSC_DATATYPE;
 */
 
 
-#if ACMSC_FORMAT == 1
+/*
 #define NSEG_PER_WORD 8
 #define NBETA_PER_SEG 3
 #define MASK_J  0x00888888
@@ -105,7 +99,7 @@ typedef int32_t MSC_DATATYPE;
 #define MASK_S0 0x77777777
 #define MASK_E  0xf
 #define SHIFT_MAX 31
-#endif
+*/
 /*
   MASK_J  0000 0000 1000 1000 1000 1000 1000 1000
   MASK_J0 0000 0000 0000 0000 0000 0000 0000 1000

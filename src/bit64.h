@@ -8,11 +8,6 @@
 #include <stdint.h>
 
 
-// ACMSC encoding alternatives, MSC_FORMAT = 0, 1,
-// // !!!!!!!!  1 IS BUGGY !!!!!!!!
-#define MSC_FORMAT 0
-
-
 /*
   LENG -           length of an integer
   NBETA -          number of parallel betas
@@ -47,7 +42,6 @@ typedef int64_t MSC_DATATYPE;
 #define NWORD 1
 #define NBIT_PER_SEG 4
 
-#if ACMSC_FORMAT == 0
 #define NSEG_PER_WORD 14
 #define NBETA_PER_SEG 4
 #define MASK_J  0xfc00000000000000
@@ -67,7 +61,6 @@ typedef int64_t MSC_DATATYPE;
 #define MASK_S0 0x00ffffffffffffff
 #define MASK_E  0xf
 #define SHIFT_MAX 56
-#endif
 /*
   MASK_J  1111 11-- 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000
   MASK_J0 0000 01-- 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000
