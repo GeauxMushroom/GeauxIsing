@@ -5,7 +5,12 @@
 #define BIT32_H
 
 
-//#include <stdint.h>
+#include <stdint.h>
+
+
+// ACMSC encoding alternatives, MSC_FORMAT = 0, 1,
+// // !!!!!!!!  1 IS BUGGY !!!!!!!!
+#define MSC_FORMAT 0
 
 
 
@@ -31,20 +36,18 @@
 
 
 
-typedef u_int32_t MSC_DATATYPE;
+typedef int32_t MSC_DATATYPE;
 #define LENG 32
 #define NBETA_MAX LENG
 #define MASK_A  0xffffffff
 
 
-
-
-
 #define NBETA 24
 #define NBETA_PER_WORD 24
 #define NWORD 1
+#define NBIT_PER_SEG 4
 
-#if MSC_FORMAT == 0
+#if ACMSC_FORMAT == 0
 #define NSEG_PER_WORD 6
 #define NBETA_PER_SEG 4
 #define MASK_J  0xfc000000
@@ -82,7 +85,7 @@ typedef u_int32_t MSC_DATATYPE;
 */
 
 
-#if MSC_FORMAT == 1
+#if ACMSC_FORMAT == 1
 #define NSEG_PER_WORD 8
 #define NBETA_PER_SEG 3
 #define MASK_J  0x00888888

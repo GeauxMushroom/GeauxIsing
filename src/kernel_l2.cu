@@ -1,13 +1,6 @@
 #include "COPYING"
 
 
-/*
-  ALLOCATION = SHARED
-  DENSE      = COMPACT
-  MSCT       = 4
-*/
-
-
 __device__ void
 mc (float *temp_beta_shared, Parameter para, int iter)
 {
@@ -82,7 +75,7 @@ mc (float *temp_beta_shared, Parameter para, int iter)
 	  //float val = 0.7;
 	  //float myrand = curand_uniform (&seed0);
 	  //PROB_DATATYPE myrand = 0.4;
-	  //PROB_DATATYPE myrand = curand (&seed0);	// range: [0,U_INT32_T_MAX]
+	  //PROB_DATATYPE myrand = curand (&seed0);	// range: [0,UINT32_MAX]
 	  //c = c ^ n0 ^ n1 ^ n2 ^ n3 ^ n4 ^ n5;
 
 	  
@@ -104,16 +97,16 @@ mc (float *temp_beta_shared, Parameter para, int iter)
 	    e = (e << 1) + ((c >> s) & MASK_S);
 	    MSC_DATATYPE flip = 0;
 	    //#pragma unroll
-	    for (int shift = 0; shift < SHIFT_MAX; shift += MSCT) {
+	    for (int shift = 0; shift < SHIFT_MAX; shift += NBIT_PER_SEG) {
 
-#if MSC_FORMAT == 0
+#if ACMSC_FORMAT == 0
  	      PROB_DATATYPE val = temp_prob_shared[shift + s][(e >> shift) & MASK_E];
-#elif MSC_FORMAT == 1
+#elif ACMSC_FORMAT == 1
 	      PROB_DATATYPE val = temp_prob_shared[(shift >> 2) * 3 + s][(e >> shift) & MASK_E];
 #endif
 
 	      //PROB_DATATYPE myrand = curand_uniform (&seed0);	// range: [0,1]
-	      PROB_DATATYPE myrand = curand (&seed0);	// range: [0,U_INT32_T_MAX]
+	      PROB_DATATYPE myrand = curand (&seed0);	// range: [0,UINT32_MAX]
 	      flip |= ((myrand < val) << shift);	// myrand < val ? 1 : 0;
 	    }
 	    c ^= (flip << s);
@@ -269,7 +262,7 @@ pt (int *temp_idx_shared, float *temp_beta_shared, float *E, Parameter para, int
       MSC_DATATYPE c1 = l[z][y][x1];
 
       for (int s = 0; s < NBETA_PER_SEG; s++) {
-	for (int shift = 0; shift < SHIFT_MAX; shift += MSCT) {
+	for (int shift = 0; shift < SHIFT_MAX; shift += NBIT_PER_SEG) {
 	  int ss = shift + s;
 	  E_shared[ss][bidx] += ((c0 >> ss) & 1) + ((c1 >> ss) & 1);
 	}

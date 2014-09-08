@@ -24,7 +24,6 @@ host_launcher (float beta_low, float beta_high, char *mydir, int node,
   cudaSetDevice (device);
 
   // configure the GPU SRAM
-  //cudaFuncSetCacheConfig (kernel_unified, cudaFuncCachePreferShared);
   cudaFuncSetCacheConfig (kernel_warmup, cudaFuncCachePreferShared);
   cudaFuncSetCacheConfig (kernel_swap, cudaFuncCachePreferShared);
   cudaFuncSetCacheConfig (kernel_rearrange, cudaFuncCachePreferL1);
@@ -102,8 +101,7 @@ host_launcher (float beta_low, float beta_high, char *mydir, int node,
 
 
 
-
-  // how often should we re-initialize gpuseed???
+  // how often to re-initialize gpuseed???
   CUDAKERNELSYNC (kernel_init_seed, dim_grid3, dim_block3, rand (), para);
 
 
@@ -115,9 +113,6 @@ host_launcher (float beta_low, float beta_high, char *mydir, int node,
   putchar ('\n');
   host_report_speed_title ();
 
-
-#if 1
-  /// GPU ising
 
   // warm up runs
   t2[0] = HostTimeNow ();
@@ -151,7 +146,6 @@ host_launcher (float beta_low, float beta_high, char *mydir, int node,
     //host_report_speed (t[1][0], t[1][1], ITER_SWAP_KERN, message);
   }
   t2[2] = HostTimeNow ();
-#endif
 
 
 

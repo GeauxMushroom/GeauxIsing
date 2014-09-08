@@ -7,8 +7,7 @@ gpu_init_temp (PROB_DATATYPE prob[NBETA_PER_WORD][NPROB_MAX], const int bidx)
   if (bidx < NPROB_MAX) {
     for (int b = 0; b < NBETA_PER_WORD; b++) {
       //prob[b][bidx] = 2.0f;
-      prob[b][bidx] = U_INT32_T_MAX;
-      //prob[b][bidx] = LCG_M + 1;
+      prob[b][bidx] = UINT32_MAX;
     }
   }
 }
@@ -51,8 +50,7 @@ __device__ void
       float energy = bidx - 6 - H - ((-1 * H * 2.0f + 1.0f) * (bidx & 1));
 
       //prob[b][bidx] = expf (2 * energy * mybeta);
-      prob[b][bidx] = expf (2 * energy * mybeta) * U_INT32_T_MAX;
-      //prob[b][bidx] = expf (2 * energy * mybeta) * LCG_M;
+      prob[b][bidx] = expf (2 * energy * mybeta) * UINT32_MAX;
     }
   }
 
