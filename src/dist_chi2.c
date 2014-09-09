@@ -38,7 +38,7 @@ main (int argc, char **argv)
   float *qr, *qi;
   float k1r, k1i, k2r, k2i, x1, x2;
   char name[500];
-
+  double chi1[6];
   hid_t memspace;
   hsize_t count[2];
   hsize_t offset[2];
@@ -72,8 +72,6 @@ main (int argc, char **argv)
 
 
   //  for (pair = 0; pair < SAMPLES; pair++) {
-    x1 = 0.0f;
-    k1r = 0.0f;
 
     sprintf(myh5,"sample_pair_%05d.h5",pair);
 
@@ -84,9 +82,13 @@ main (int argc, char **argv)
       exit(0);
     }
 
+    for(k=0;k<6;k++)
+      {
+    x1 = 0.0f;
+    k1r = 0.0f;
+    k1i= 0.0f;
 
-
-    sprintf (name, "qk_real_04");      
+	sprintf (name, "qk_real_%02d",k+4);      
     dataset_id = H5Dopen2 (file_id, name, H5P_DEFAULT);
     
     filespace = H5Dget_space (dataset_id);
@@ -100,7 +102,7 @@ main (int argc, char **argv)
 
 
 
-    sprintf (name, "qk_imag_04");      
+    sprintf (name, "qk_imag_%02d",k+4);      
     dataset_id = H5Dopen2 (file_id, name, H5P_DEFAULT);
     
     filespace = H5Dget_space (dataset_id);
@@ -113,7 +115,7 @@ main (int argc, char **argv)
     status = H5Dclose (dataset_id);
 
 
-    status = H5Fclose (file_id);
+
   
 
     for (rec = rec_start; rec < rec_max; rec++) {
@@ -122,15 +124,22 @@ main (int argc, char **argv)
       k1i += qi[rec];
     }
     
-    
+          
 
     double ax1 = x1 / (rec_max - rec_start);
     double aq1r = k1r / (rec_max - rec_start);
     double aq1i = k1i / (rec_max - rec_start);
 
-    ax1 = (ax1 - aq1r * aq1r- aq1i*aq1i)/SZ_CUBE;
 
-    printf ("%7d\t%2d\t%1.5f\n", pair, offset[1], ax1);
+
+    ax1 = (ax1 - aq1r * aq1r- aq1i*aq1i)/SZ_CUBE;
+    chi1[k]=ax1;
+      }
+
+
+    status = H5Fclose (file_id);
+
+    printf ("%7d\t%2d\t%1.5f\n", pair,(int)offset[1], (chi1[0]+chi1[1]+chi1[2]+chi1[3]+chi1[4]+chi1[5])/6.0);
 
 
     //  }

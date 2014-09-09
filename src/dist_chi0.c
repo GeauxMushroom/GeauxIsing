@@ -35,10 +35,10 @@ main (int argc, char **argv)
   char myh5[STR_LENG] = { 0 };
 
   int rec_start = rec_max/2;
-  float *qr, *qi;
-  float k1r, k1i, k2r, k2i, x1, x2;
+  float *qr;
+  float k1r,x1,k1r2,k1r3,k1r4;
   char name[500];
-  double chi1[3];
+
   hid_t memspace;
   hsize_t count[2];
   hsize_t offset[2];
@@ -54,7 +54,7 @@ main (int argc, char **argv)
   col_dims[0] = rec_max;
 
   qr = (float *) malloc (sizeof (float) * rec_max);
-  qi = (float *) malloc (sizeof (float) * rec_max);
+
 
   int pair, rec, k, g;
 
@@ -82,12 +82,15 @@ main (int argc, char **argv)
       exit(0);
     }
 
-    for(k=0;k<3;k++)
-      {
+
+
     x1 = 0.0f;
     k1r = 0.0f;
-    k1i=0.0f;
-	sprintf (name, "qk_real_%02d",k+1);      
+    k1r2 = 0.0f;
+    k1r3 = 0.0f;
+    k1r4 = 0.0f;
+
+    sprintf (name, "q");      
     dataset_id = H5Dopen2 (file_id, name, H5P_DEFAULT);
     
     filespace = H5Dget_space (dataset_id);
@@ -100,46 +103,30 @@ main (int argc, char **argv)
     status = H5Dclose (dataset_id);
 
 
-
-    sprintf (name, "qk_imag_%02d",k+1);      
-    dataset_id = H5Dopen2 (file_id, name, H5P_DEFAULT);
-    
-    filespace = H5Dget_space (dataset_id);
-    memspace = H5Screate_simple (RANKC, col_dims, NULL);
-    status = H5Sselect_hyperslab (filespace, H5S_SELECT_SET, offset, NULL,
-				    count, NULL);
-    status =
-      H5Dread (dataset_id, H5T_NATIVE_FLOAT, memspace, filespace,
-	       H5P_DEFAULT, qi);
-    status = H5Dclose (dataset_id);
-
-
-
   
 
     for (rec = rec_start; rec < rec_max; rec++) {
-      x1 += qr[rec] * qr[rec] + qi[rec]*qi[rec];
-      k1r += qr[rec];
-      k1i += qi[rec];
+      double q=qr[rec]/SZ_CUBE;
+      k1r += q;
+      k1r2 += q*q;
+      k1r3 += q*q*q;
+      k1r4 += q*q*q*q;
+      
     }
     
-          
+    x1=k1r2;
 
     double ax1 = x1 / (rec_max - rec_start);
     double aq1r = k1r / (rec_max - rec_start);
-    double aq1i = k1i / (rec_max - rec_start);
+    double aq1r2 = k1r2 / (rec_max - rec_start);
+    double aq1r3 = k1r3 / (rec_max - rec_start);
+    double aq1r4 = k1r4 / (rec_max - rec_start);
 
-    ax1 = (ax1 - aq1r * aq1r- aq1i*aq1i)/SZ_CUBE;
-    chi1[k]=ax1;
-      }
-
+    ax1 = (ax1 - aq1r * aq1r)*SZ_CUBE;
 
     status = H5Fclose (file_id);
 
-    printf ("%7d\t%2d\t%1.5f\n", pair,(int)offset[1], (chi1[0]+chi1[1]+chi1[2])/3.0);
-
-
-    //  }
+    printf ("%7d\t%2d\t%1.5f\t%1.5f\t%1.5f\t%1.5f\t%1.5f\n", pair,(int)offset[1], ax1,aq1r,aq1r2,aq1r3,aq1r4);
 
 
   return 0;
