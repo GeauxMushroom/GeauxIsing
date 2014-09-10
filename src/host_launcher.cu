@@ -20,6 +20,9 @@ void
 host_launcher (float beta_low, float beta_high, char *mydir, int node,
 	       int device)
 {
+  // initilize random sequence
+  srand (time (NULL) + 10 * node + device);
+
   // select a GPU device
   cudaSetDevice (device);
 
@@ -30,24 +33,9 @@ host_launcher (float beta_low, float beta_high, char *mydir, int node,
   cudaFuncSetCacheConfig (kernel_compute_q, cudaFuncCachePreferShared);
 
 
-  const int dim_grid0 = GD;
-  const dim3 dim_block0 (BDx0, BDy0, BDz0);
-
-  const int dim_grid3 = GD;
-  const int dim_block3 = BDx3;
-
-  const int dim_grid4 = GD_HF;
-  const int dim_block4 = BDx3;
-
-
-  // initilize random sequence
-  srand (time (NULL) + 10 * node + device);
-
-
-
   // curand seeds
   curandState *gpuseed_dev;
-  size_t gpuseed_sz = sizeof (curandState) * TperB * GD;
+  size_t gpuseed_sz = sizeof (curandState) * BD * GD;
   CUDAMALLOC (gpuseed_dev, gpuseed_sz, curandState *);
 
   // lattice
@@ -102,7 +90,7 @@ host_launcher (float beta_low, float beta_high, char *mydir, int node,
 
 
   // how often to re-initialize gpuseed???
-  CUDAKERNELSYNC (kernel_init_seed, dim_grid3, dim_block3, rand (), para);
+  CUDAKERNELSYNC (kernel_init_seed, GD, BD, rand (), para);
 
 
 
@@ -119,7 +107,7 @@ host_launcher (float beta_low, float beta_high, char *mydir, int node,
   for (int i = 0; i < ITER_WARMUP; i += ITER_WARMUP_KERN) {
     t[0][0] = HostTimeNow ();
 
-    CUDAKERNELSYNC (kernel_warmup, dim_grid0, dim_block0, para);
+    CUDAKERNELSYNC (kernel_warmup, GD, BD, para);
 
     t[0][1] = HostTimeNow ();
     //sprintf (message, "n%03d d%d warmup %8d/%08d", node, device, i, ITER_WARMUP);
@@ -132,13 +120,13 @@ host_launcher (float beta_low, float beta_high, char *mydir, int node,
   for (int i = 0; i < ITER_SWAP; i += ITER_SWAP_KERN) {
     t[1][0] = HostTimeNow ();
 
-    CUDAKERNELSYNC (kernel_swap, dim_grid0, dim_block0, i / ITER_SWAP_KERN, para);
+    CUDAKERNELSYNC (kernel_swap, GD, BD, i / ITER_SWAP_KERN, para);
 
     t[1][1] = HostTimeNow ();
     t3 += t[1][1] - t[1][0];
 
-    CUDAKERNELSYNC (kernel_rearrange, dim_grid3, dim_block3, para);
-    CUDAKERNELSYNC (kernel_compute_q, dim_grid4, dim_block4, i / ITER_SWAP_KERN, para);
+    CUDAKERNELSYNC (kernel_rearrange, GD, BD, para);
+    CUDAKERNELSYNC (kernel_compute_q, GD_HF, BD, i / ITER_SWAP_KERN, para);
 
     t[2][1] = HostTimeNow ();
 

@@ -4,11 +4,9 @@
 __device__ void
 mc (float *temp_beta_shared, Parameter para, int iter)
 {
-  const int bidx = blockDim.x * blockDim.y * threadIdx.z + blockDim.x * threadIdx.y + threadIdx.x;	// within a TB
-
-
+  const int bidx = threadIdx.x;
   MSC_DATATYPE *lattice = para.lattice;
-  curandState seed0 = para.gpuseed[TperB * blockIdx.x + bidx];
+  curandState seed0 = para.gpuseed[BD * blockIdx.x + bidx];
 
 
   /// temperature scratchpad
@@ -17,14 +15,22 @@ mc (float *temp_beta_shared, Parameter para, int iter)
 
   /// lattice scratchpad
   // sizeof(u_int32_t) * 16 * 16 * 16 = 16 KB
-  __shared__ MSC_DATATYPE l[L][L][L];
+  __shared__ MSC_DATATYPE l[SZ_CUBE];
 
-  // index for read/write glocal memory
-  const int xx = (L_HF * (threadIdx.y & 1)) + threadIdx.x;
-  const int yy = (L_HF * (threadIdx.z & 1)) + (threadIdx.y >> 1);
 
-  // index for reading scratchpad
-  const int y = threadIdx.y;
+
+  // 3D thread dimensions
+  const int bdx = L / 2; // blockDim.x
+  const int bdy = L; // blockDim.y
+  const int bdz = blockDim.x / bdx / bdy; // blockDim.y
+
+  // 3D thread index
+  const int tz = threadIdx.x / bdx / bdy;
+  const int ty = (threadIdx.x - bdx * bdy * tz) / bdx;
+  const int tx = threadIdx.x - bdx * bdy * tz - bdx * ty;
+
+  // map threads to lattice points
+  const int y = ty;
   const int ya = (y + L - 1) % L;
   const int yb = (y + 1) % L;
 
@@ -36,9 +42,8 @@ mc (float *temp_beta_shared, Parameter para, int iter)
     gpu_compute_temp (temp_prob_shared, temp_beta_shared, bidx, word);
 
     // import lattice scratchpad
-    for (int z_offset = 0; z_offset < L; z_offset += (BDz0 >> 1)) {
-      int zz = z_offset + (threadIdx.z >> 1);
-      l[zz][yy][xx] = lattice[lattice_offset + L * L * z_offset + bidx];
+    for (int idx = bidx; idx < SZ_CUBE; idx += BD) {
+      l[idx] = lattice[lattice_offset + idx];
     }
     __syncthreads ();
 
@@ -48,28 +53,25 @@ mc (float *temp_beta_shared, Parameter para, int iter)
 
       // two phases update
       for (int run = 0; run < 2; run++) {
-	int x0 = (threadIdx.z & 1) ^ (threadIdx.y & 1) ^ run;	// initial x
-	int x = (threadIdx.x << 1) + x0;
-	int xa = (x + L - 1) % L;
-	int xb = (x + 1) % L;
+	const int x = (tx << 1) + ((tz & 1) ^ (ty & 1) ^ run);
+	const int xa = (x + L - 1) % L;
+	const int xb = (x + 1) % L;
 	//int xa = (x + L - 1) & (L - 1);
 	//int xb = (x + 1) & (L - 1);
 
-	// data reuse among z ???
-	for (int z_offset = 0; z_offset < L; z_offset += BDz0) {
-	  int z = z_offset + threadIdx.z;
-	  int za = (z + L - 1) % L;
-	  int zb = (z + 1) % L;
+	for (int z = tz; z < L; z += bdz) {
+	  const int za = (z + L - 1) % L;
+	  const int zb = (z + 1) % L;
 	  //int za = (z + L - 1) & (L - 1);
 	  //int zb = (z + 1) & (L - 1);
 
-	  MSC_DATATYPE c = l[z][y][x];	// center
-	  MSC_DATATYPE n0 = l[z][y][xa];	// left
-	  MSC_DATATYPE n1 = l[z][y][xb];	// right
-	  MSC_DATATYPE n2 = l[z][ya][x];	// up
-	  MSC_DATATYPE n3 = l[z][yb][x];	// down
-	  MSC_DATATYPE n4 = l[za][y][x];	// front
-	  MSC_DATATYPE n5 = l[zb][y][x];	// back
+	  MSC_DATATYPE c = l[CUBEIDX(z, y, x)];	// center
+	  MSC_DATATYPE n0 = l[CUBEIDX(z, y, xa)];	// left
+	  MSC_DATATYPE n1 = l[CUBEIDX(z, y, xb)];	// right
+	  MSC_DATATYPE n2 = l[CUBEIDX(z, ya, x)];	// up
+	  MSC_DATATYPE n3 = l[CUBEIDX(z, yb, x)];	// down
+	  MSC_DATATYPE n4 = l[CUBEIDX(za, y, x)];	// front
+	  MSC_DATATYPE n5 = l[CUBEIDX(zb, y, x)];	// back
 
 	  // for profiling purpose
 	  //float val = 0.7;
@@ -113,7 +115,7 @@ mc (float *temp_beta_shared, Parameter para, int iter)
 	  }
 
 
-	  l[z][y][x] = c;
+	  l[CUBEIDX(z, y, x)] = c;
 	}			// z_offset
 
 
@@ -121,11 +123,9 @@ mc (float *temp_beta_shared, Parameter para, int iter)
       }				// run
     }				// i
 
-
     // export lattice scratchpad
-    for (int z_offset = 0; z_offset < L; z_offset += (BDz0 >> 1)) {
-      int zz = z_offset + (threadIdx.z >> 1);
-      lattice[lattice_offset + L * L * z_offset + bidx] = l[zz][yy][xx];
+    for (int idx = bidx; idx < SZ_CUBE; idx += BD) {
+      lattice[lattice_offset + idx] = l[idx];
     }
 
     __syncthreads ();
@@ -133,8 +133,10 @@ mc (float *temp_beta_shared, Parameter para, int iter)
 
 
   // copy seed back
-  para.gpuseed[TperB * blockIdx.x + bidx] = seed0;
+  para.gpuseed[BD * blockIdx.x + bidx] = seed0;
 }
+
+
 
 
 
@@ -143,7 +145,7 @@ mc (float *temp_beta_shared, Parameter para, int iter)
 __device__ void
 pt (int *temp_idx_shared, float *temp_beta_shared, float *E, Parameter para, int mod)
 {
-  const int bidx = blockDim.x * blockDim.y * threadIdx.z + blockDim.x * threadIdx.y + threadIdx.x;	// within a TB
+  const int bidx = threadIdx.x;
 
   MSC_DATATYPE *lattice = para.lattice;
 
@@ -153,51 +155,45 @@ pt (int *temp_idx_shared, float *temp_beta_shared, float *E, Parameter para, int
 
   // signed 16 bit integer: -32K ~ 32K, never overflows
   // sizeof (shot) * 24 * 512 = 24 KB
-  __shared__ short E_shared[NBETA_PER_WORD][TperB];
-  //short E_shared[NBETA_PER_WORD][TperB];
+  __shared__ short E_shared[NBETA_PER_WORD][BD];
+  //short E_shared[NBETA_PER_WORD][BD];
   // sizeof (float) * 32 = 128 B
   __shared__ float __align__ (32) Eh[NBETA];
 
 
   /// lattice scratchpad
   // sizeof (u_int32_t) * 16 * 16 * 16 = 16 KB
-  __shared__ MSC_DATATYPE l[L][L][L];
-
-  // index for read/write glocal memory
-  const int xx = (L_HF * (threadIdx.y & 1)) + threadIdx.x;
-  const int yy = (L_HF * (threadIdx.z & 1)) + (threadIdx.y >> 1);
+  __shared__ MSC_DATATYPE l[SZ_CUBE];
 
 
-  // index for reading scratch pad
-  const int y = threadIdx.y;
+
+  // 3D thread dimensions
+  const int bdx = L; // blockDim.x
+  const int bdy = L; // blockDim.y
+  const int bdz = blockDim.x / bdx / bdy; // blockDim.y
+
+  // 3D thread index
+  const int tz = threadIdx.x / bdx / bdy;
+  const int ty = (threadIdx.x - bdx * bdy * tz) / bdx;
+  const int tx = threadIdx.x - bdx * bdy * tz - bdx * ty;
+
+  // map threads to lattice points
+  const int y = ty;
   const int ya = (y + L - 1) % L;
   const int yb = (y + 1) % L;
-  const int x0 = (threadIdx.z & 1) ^ (threadIdx.y & 1);	// initial x
-  const int x = (threadIdx.x << 1) + x0;
-  const int x1 = x + 1 - x0 * 2;
+  const int x = tx;
   const int xa = (x + L - 1) % L;
   const int xb = (x + 1) % L;
+
 
 
   for (int word = 0; word < NWORD; word++) {
     int lattice_offset = SZ_CUBE * NWORD * blockIdx.x + SZ_CUBE * word;
 
     // import lattice scratchpad
-    
-#if BDz0 > 1
-    for (int z_offset = 0; z_offset < L; z_offset += (BDz0 >> 1)) {
-      int zz = z_offset + (threadIdx.z >> 1);
-      l[zz][yy][xx] = lattice[lattice_offset + L * L * z_offset + bidx];
+    for (int idx = bidx; idx < SZ_CUBE; idx += BD) {
+      l[idx] = lattice[lattice_offset + idx];
     }
-
-#endif
-
-#if BDz0 == 1 
-    for (int zz = 0; zz < L; zz ++) {
-      l[zz][yy][xx] = lattice[lattice_offset + L * L * zz + bidx];
-      // l[zz][yy][xx] = lattice[lattice_offset + L * L * zz + bidx + 1];
-    }
-#endif
 
     // reset partial status
     for (int b = 0; b < NBETA_PER_WORD; b++)
@@ -206,20 +202,19 @@ pt (int *temp_idx_shared, float *temp_beta_shared, float *E, Parameter para, int
     __syncthreads ();
 
 
-    for (int z_offset = 0; z_offset < L; z_offset += BDz0) {
-      int z = z_offset + threadIdx.z;
+    for (int z = tz; z < L; z += bdz) {
       int za = (z + L - 1) % L;
       int zb = (z + 1) % L;
       //int za = (z + L - 1) & (L - 1);
       //int zb = (z + 1) & (L - 1);
 
-      MSC_DATATYPE c = l[z][y][x];	// center
-      MSC_DATATYPE n0 = l[z][y][xa];	// left
-      MSC_DATATYPE n1 = l[z][y][xb];	// right
-      MSC_DATATYPE n2 = l[z][ya][x];	// up
-      MSC_DATATYPE n3 = l[z][yb][x];	// down
-      MSC_DATATYPE n4 = l[za][y][x];	// front
-      MSC_DATATYPE n5 = l[zb][y][x];	// back
+      MSC_DATATYPE c = l[CUBEIDX(z, y, x)];	// center
+      MSC_DATATYPE n0 = l[CUBEIDX(z, y, xa)];	// left
+      MSC_DATATYPE n1 = l[CUBEIDX(z, y, xb)];	// right
+      MSC_DATATYPE n2 = l[CUBEIDX(z, ya, x)];	// up
+      MSC_DATATYPE n3 = l[CUBEIDX(z, yb, x)];	// down
+      MSC_DATATYPE n4 = l[CUBEIDX(za, y, x)];	// front
+      MSC_DATATYPE n5 = l[CUBEIDX(zb, y, x)];	// back
 
       n0 = MASK_A * ((c >> SHIFT_J0) & 1) ^ n0 ^ c;
       n1 = MASK_A * ((c >> SHIFT_J1) & 1) ^ n1 ^ c;
@@ -255,16 +250,14 @@ pt (int *temp_idx_shared, float *temp_beta_shared, float *E, Parameter para, int
 
     for (int b = 0; b < NBETA_PER_WORD; b++)
       E_shared[b][bidx] = 0;
-    
-    for (int z_offset = 0; z_offset < L; z_offset += BDz0) {
-      int z = z_offset + threadIdx.z;
-      MSC_DATATYPE c0 = l[z][y][x];
-      MSC_DATATYPE c1 = l[z][y][x1];
 
-      for (int s = 0; s < NBETA_PER_SEG; s++) {
-	for (int shift = 0; shift < SHIFT_MAX; shift += NBIT_PER_SEG) {
-	  int ss = shift + s;
-	  E_shared[ss][bidx] += ((c0 >> ss) & 1) + ((c1 >> ss) & 1);
+    for (int z = tz; z < L; z += bdz) {
+      MSC_DATATYPE c = l[CUBEIDX(z, y, x)];
+
+      for (int i = 0; i < NSEG_PER_WORD; ++i) {
+	for (int j = 0; j < NBETA_PER_SEG; ++j) {
+	  const int position = NBIT_PER_SEG * i + j;
+	  E_shared[position][bidx] += ((c >> position) & 1);
 	}
       }
     }
@@ -277,8 +270,8 @@ pt (int *temp_idx_shared, float *temp_beta_shared, float *E, Parameter para, int
 
 
   // convert E from [0,6] to [-6,6], e = e * 2 - 6
-  // E = sum_TperB sum_ZITER (e * 2 - 6)
-  //   = 2 * sum_ZITER_TperG e - 6 * ZITER * TperB
+  // E = sum_BD sum_ZITER (e * 2 - 6)
+  //   = 2 * sum_ZITER_TperG e - 6 * ZITER * BD
 
   // conver Eh from [0,1] to [-1,1], e = e * 2 - 1
   // Eh = 2 * sum_ZITER_TperG e - SZ_CUBE
@@ -286,7 +279,7 @@ pt (int *temp_idx_shared, float *temp_beta_shared, float *E, Parameter para, int
 
   // donot need to substrasct the constant
   if (bidx < NBETA) {
-    E[bidx] = E[bidx] * 2 - 6 * (L / BDz0) * TperB;
+    E[bidx] = E[bidx] * 2 - 6 * SZ_CUBE;
     Eh[bidx] = Eh[bidx] * 2 - SZ_CUBE;
     E[bidx] = E[bidx] + Eh[bidx] * H;
   }
@@ -296,6 +289,5 @@ pt (int *temp_idx_shared, float *temp_beta_shared, float *E, Parameter para, int
   gpu_shuffle (temp_idx_shared, temp_beta_shared, E, para.gpuseed, bidx, mod);
   __syncthreads ();
 }
-
 
 

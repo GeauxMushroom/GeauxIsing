@@ -72,7 +72,7 @@ gpu_shuffle (int *temp_idx, float *temp_beta, float *E, curandState *gpuseed, co
   float tmp1;
 
 
-  curandState seed0 = gpuseed[TperB * blockIdx.x + bidx];	// needed by curand
+  curandState seed0 = gpuseed[BD * blockIdx.x + bidx];	// needed by curand
 
   __shared__ int __align__ (32) order[NBETA];
 
@@ -135,7 +135,7 @@ gpu_shuffle (int *temp_idx, float *temp_beta, float *E, curandState *gpuseed, co
     }
   }
 
-  gpuseed[TperB * blockIdx.x + bidx] = seed0;
+  gpuseed[BD * blockIdx.x + bidx] = seed0;
   __syncthreads ();
 }
 
@@ -146,7 +146,7 @@ gpu_shuffle (int *temp_idx, float *temp_beta, float *E, curandState *gpuseed, co
 
 __device__ void
 //__forceinline__
-gpu_reduction (float *a, short a_shared[NBETA_PER_WORD][TperB], const int bidx,
+gpu_reduction (float *a, short a_shared[NBETA_PER_WORD][BD], const int bidx,
 	       int word)
 {
   // skewed sequential reduction is faster than tree reduction
@@ -156,10 +156,10 @@ gpu_reduction (float *a, short a_shared[NBETA_PER_WORD][TperB], const int bidx,
 
   if (bidx < NBETA_PER_WORD) {
     int aaa = 0;
-    for (int t = 0; t < TperB; t++) {
-      // skew loop iteration from "t" to "(t + bidx) % TperB"
+    for (int t = 0; t < BD; t++) {
+      // skew loop iteration from "t" to "(t + bidx) % BD"
       // to avoid shared memory bank confict
-      aaa += a_shared[bidx][(t + bidx) % TperB];
+      aaa += a_shared[bidx][(t + bidx) % BD];
     }
 
     // save the summation
@@ -174,18 +174,18 @@ gpu_reduction (float *a, short a_shared[NBETA_PER_WORD][TperB], const int bidx,
 
   __syncthreads ();
 
-  //int powerof2 = power2floor (TperB);
+  //int powerof2 = power2floor (BD);
 
   for (int b = 0; b < NBETA_PER_WORD; b++) {
     /*
-    for (int stride = TperB / 2; stride >= 1; stride >>= 1) {
+    for (int stride = BD / 2; stride >= 1; stride >>= 1) {
       if (bidx < stride)
 	a_shared[b][bidx] += a_shared[b][stride + bidx];
       __syncthreads ();
     }
     */
 
-    if (bidx < TperB - powerof2) {
+    if (bidx < BD - powerof2) {
       a_shared[b][bidx] += a_shared[b][powerof2 + bidx];
     }
     for (int stride = powerof2 / 2; stride >= 1; stride >>= 1) {

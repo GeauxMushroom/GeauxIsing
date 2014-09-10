@@ -77,11 +77,11 @@ typedef struct
 
 typedef struct
 {
-  float Q0[NBETA][TperB];
-  float Qk_real[NBETA][TperB];
-  float Qk_imag[NBETA][TperB];
-  float Qk2_real[NBETA][TperB];
-  float Qk2_imag[NBETA][TperB];                                               
+  float Q0[NBETA][BD];
+  float Qk_real[NBETA][BD];
+  float Qk_imag[NBETA][BD];
+  float Qk2_real[NBETA][BD];
+  float Qk2_imag[NBETA][BD];                                               
 } Qk;
 
 

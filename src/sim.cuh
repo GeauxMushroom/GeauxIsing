@@ -25,7 +25,7 @@ typedef struct
 __device__ void gpu_init_temp (PROB_DATATYPE prob[NBETA_PER_WORD][NPROB_MAX], const int bidx);
 __device__ void gpu_compute_temp (PROB_DATATYPE prob[NBETA_PER_WORD][NPROB_MAX], float *temp_beta_shared, const int bidx, int word);
 __device__ void gpu_shuffle (int *temp_idx_shared, float *temp_beta_shared, float *E, curandState *gpuseed, const int bidx, int mod);
-__device__ void gpu_reduction (float *a, short a_shared[NBETA_PER_WORD][TperB], const int bidx, int word);
+__device__ void gpu_reduction (float *a, short a_shared[NBETA_PER_WORD][BD], const int bidx, int word);
 
 
 // kernel_l2.cu

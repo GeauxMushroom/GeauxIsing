@@ -549,7 +549,7 @@ host_summary (float beta_low, float beta_high, char *mydir)
   printf ("output dir:\t\t %s\n", mydir);
   printf ("\n");
 
-  printf ("threads per block:\t %d\n", TperB);
+  printf ("threads per block:\t %d\n", BD);
   printf ("blocks per GPU:\t\t %d\n", GD);
   printf ("\n");
 }

@@ -63,28 +63,20 @@
 #define SZ_CUBE (L * L * L)
 #define SZ_CUBE_HF (SZ_CUBE / 2)
 
+#define CUBEIDX(z, y, x) ((L * L * (z)) + (L * (y)) + (x)) 
 
-// SM per GPU
-// should later implement GD = func (prop.multiProcessorCount);
 
-// GD - blocksPerGrid, must be even
-// BD - threadsPerBlock
-// when modifing "GD", should also update "GD_HF",
 
-#define GD 32
-#define GD_HF 16
 
-#define TperB 144
-// checkerboard 3D block
-#define BDx0 L_HF
-#define BDy0 L
-#define BDz0 2
-// BDZ0 == 1 fail ???
-//
-// 1D block
-#define BDx3 TperB
-#define BDy3 1
-#define BDz3 1
+// blocksPerGrid, must be even
+#define GD 28
+// half of GD
+#define GD_HF 14
+// threadsPerBlock
+#define BD 144
+
+
+
 
 
 #define MPIRANK_PER_NODE 2

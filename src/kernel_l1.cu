@@ -9,7 +9,7 @@ __global__ void
 kernel_init_seed (int seed, Parameter para)
 {
 
-  const int gidx = TperB * blockIdx.x + threadIdx.x;
+  const int gidx = BD * blockIdx.x + threadIdx.x;
   curand_init (seed, gidx, 0, &para.gpuseed[gidx]);
 
   // seed, subsequence, offset, gpuseed
@@ -23,7 +23,7 @@ kernel_init_seed (int seed, Parameter para)
 __global__ void
 kernel_warmup (Parameter para)
 {
-  const int bidx = blockDim.x * blockDim.y * threadIdx.z + blockDim.x * threadIdx.y + threadIdx.x;	// within a TB
+  const int bidx = threadIdx.x;
 
   /// temperature
   // (4 * 32) * 2 = 256 B
@@ -43,8 +43,7 @@ kernel_warmup (Parameter para)
 __global__ void
 kernel_swap (int rec, Parameter para)
 {
-  const int bidx = blockDim.x * blockDim.y * threadIdx.z + blockDim.x * threadIdx.y + threadIdx.x;	// within a TB
-
+  const int bidx = threadIdx.x;
   Temp *temp = para.temp;
 
   /// temperature
@@ -111,7 +110,7 @@ kernel_rearrange (Parameter para)
   __shared__ int __align__ (32) temp_idx_shared[NBETA_PER_WORD];
 
   // initilize lattice1
-  for (int offset = 0; offset < SZ_CUBE; offset += TperB)
+  for (int offset = 0; offset < SZ_CUBE; offset += BD)
     lattice1[SZ_CUBE * blockIdx.x + offset + bidx] = 0;
   __syncthreads ();
 
@@ -125,14 +124,14 @@ kernel_rearrange (Parameter para)
   __syncthreads ();
 
   
-  for (int offset = 0; offset < SZ_CUBE; offset += TperB) {
+  for (int offset = 0; offset < SZ_CUBE; offset += BD) {
     MSC_DATATYPE oldword = lattice[lattice_offset + offset + bidx];
     MSC_DATATYPE newword = 0;
 
-    for (int i = 0; i < NSEG_PER_WORD; i++) {
-      for (int j = 0; j < NBETA_PER_SEG; j++) {
-	int position = NBIT_PER_SEG * i + j;
-	int b = NBETA_PER_SEG * i + j;
+    for (int i = 0; i < NSEG_PER_WORD; ++i) {
+      for (int j = 0; j < NBETA_PER_SEG; ++j) {
+	const int position = NBIT_PER_SEG * i + j;
+	const int b = NBETA_PER_SEG * i + j;
 	MSC_DATATYPE tmp = oldword >> position & 1;
 	tmp <<= temp_idx_shared[b];
 	newword |= tmp;
@@ -166,7 +165,7 @@ kernel_compute_q (int rec, Parameter para)
   const int lattice_offset1 = lattice_offset0 + SZ_CUBE;
   const double k=2*PI/L;
 
-  for (int offset = 0; offset < SZ_CUBE; offset += TperB) {
+  for (int offset = 0; offset < SZ_CUBE; offset += BD) {
     l1[offset + bidx] =		// xord_word 
       lattice1[lattice_offset0 + offset + bidx] ^
       lattice1[lattice_offset1 + offset + bidx];
