@@ -22,7 +22,7 @@ mc (float *temp_beta_shared, Parameter para, int iter)
   // 3D thread dimensions
   const int bdx = L / 2;	// blockDim.x
   const int bdy = L;		// blockDim.y
-  const int bdz = blockDim.x / bdx / bdy;	// blockDim.y
+  const int bdz = blockDim.x / bdx / bdy;	// blockDim.z
 
   // 3D thread index
   const int tz = threadIdx.x / bdx / bdy;
@@ -162,7 +162,7 @@ pt (int *temp_idx_shared, float *temp_beta_shared, float *E, Parameter para,
   // 3D thread dimensions
   const int bdx = L;		// blockDim.x
   const int bdy = L;		// blockDim.y
-  const int bdz = blockDim.x / bdx / bdy;	// blockDim.y
+  const int bdz = blockDim.x / bdx / bdy;	// blockDim.z
 
   // 3D thread index
   const int tz = threadIdx.x / bdx / bdy;
