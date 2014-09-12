@@ -1,15 +1,9 @@
 #include "COPYING"
 
-
 #ifndef BIT32_H
 #define BIT32_H
 
-
 #include <stdint.h>
-
-
-#define ACMSC_FORMAT 0
-
 
 /*
   LENG -           length of an integer
@@ -30,14 +24,13 @@
   back     (x ,y ,zb)    J5
 */
 
-
-
+// ACMSC-1 is buggy
+#define ACMSC_FORMAT 0
 
 typedef int32_t MSC_DATATYPE;
 #define LENG 32
 #define NBETA_MAX LENG
 #define MASK_A  0xffffffff
-
 
 #define NBETA 24
 #define NBETA_PER_WORD 24
@@ -64,7 +57,7 @@ typedef int32_t MSC_DATATYPE;
 #define MASK_S  0x00111111
 #define MASK_S0 0x00ffffff
 #define MASK_E  0xf
-#define SHIFT_MAX 24
+#define SHIFT_MAX 23
 #endif
 /*
   MASK_J  1111 11-- 0000 0000 0000 0000 0000 0000
@@ -119,13 +112,6 @@ typedef int32_t MSC_DATATYPE;
   iter2    *    *    *    *    *    *    *    *
 */
 
-
-
-
-
-
-//#define SHIFT_MAX 0x02000000
-//#define SHIFT_MASK 0x1
 
 
 #endif /* BIT32_H */

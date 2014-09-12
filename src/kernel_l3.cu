@@ -38,7 +38,8 @@ gpu_init_temp (PROB_DATATYPE prob[NBETA_PER_WORD][NPROB_MAX], const int bidx)
 
 __device__ void
   gpu_compute_temp
-(PROB_DATATYPE prob[NBETA_PER_WORD][NPROB_MAX], float *temp_beta_shared, const int bidx, int word)
+  (PROB_DATATYPE prob[NBETA_PER_WORD][NPROB_MAX], float *temp_beta_shared,
+   const int bidx, int word)
 {
   // for -2 < H < 2, it is OK to compute only first 8 elements of prob[14]
   // keep the rest unchanged
@@ -62,7 +63,8 @@ __device__ void
 
 // propose a temperature shuffle (inside a lattice)
 __device__ void
-gpu_shuffle (int *temp_idx, float *temp_beta, float *E, curandState *gpuseed, const int bidx, int mod)
+gpu_shuffle (int *temp_idx, float *temp_beta, float *E, curandState * gpuseed,
+	     const int bidx, int mod)
 {
 
   int idx0, idx1, bidx_max;
@@ -178,12 +180,12 @@ gpu_reduction (float *a, short a_shared[NBETA_PER_WORD][BD], const int bidx,
 
   for (int b = 0; b < NBETA_PER_WORD; b++) {
     /*
-    for (int stride = BD / 2; stride >= 1; stride >>= 1) {
-      if (bidx < stride)
-	a_shared[b][bidx] += a_shared[b][stride + bidx];
-      __syncthreads ();
-    }
-    */
+       for (int stride = BD / 2; stride >= 1; stride >>= 1) {
+       if (bidx < stride)
+       a_shared[b][bidx] += a_shared[b][stride + bidx];
+       __syncthreads ();
+       }
+     */
 
     if (bidx < BD - powerof2) {
       a_shared[b][bidx] += a_shared[b][powerof2 + bidx];
