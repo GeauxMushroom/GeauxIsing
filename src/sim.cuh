@@ -1,6 +1,3 @@
-#include "COPYING"
-
-
 #ifndef SIM_CUH
 #define SIM_CUH
 

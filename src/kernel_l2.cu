@@ -1,6 +1,3 @@
-#include "COPYING"
-
-
 __device__ void
 mc (float *temp_beta_shared, Parameter para, int iter)
 {

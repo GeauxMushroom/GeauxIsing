@@ -1,5 +1,3 @@
-#include "COPYING"
-
 #ifndef BIT64_H
 #define BIT64_H
 
@@ -24,9 +22,6 @@
   back     (x ,y ,zb)    J5
 */
 
-// ACMSC-1 is buggy
-#define ACMSC_FORMAT 0
-
 typedef int64_t MSC_DATATYPE;
 #define LENG 64
 #define NBETA_MAX LENG
@@ -35,7 +30,6 @@ typedef int64_t MSC_DATATYPE;
 #define NWORD 1
 #define NBIT_PER_SEG 4
 
-#if ACMSC_FORMAT == 0
 #define NBETA 56
 #define NBETA_PER_WORD 56
 
@@ -58,7 +52,6 @@ typedef int64_t MSC_DATATYPE;
 #define MASK_S0 0x00ffffffffffffff
 #define MASK_E  0xf
 #define SHIFT_MAX 56
-#endif
 /*
   MASK_J  1111 11-- 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000
   MASK_J0 0000 01-- 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000
@@ -73,47 +66,6 @@ typedef int64_t MSC_DATATYPE;
   iter1               *    *    *    *    *    *    *    *    *    *    *    *    *    *  
   iter2              *    *    *    *    *    *    *    *    *    *    *    *    *    *
   iter3             *    *    *    *    *    *    *    *    *    *    *    *    *    *
-*/
-
-
-
-#if ACMSC_FORMAT == 1
-#define NBETA 48
-#define NBETA_PER_WORD 48
-
-#define NSEG_PER_WORD 16
-#define NBETA_PER_SEG 3
-#define MASK_J  0x0000000000888888
-#define MASK_J0 0x0000000000000008
-#define MASK_J1 0x0000000000000080
-#define MASK_J2 0x0000000000000800
-#define MASK_J3 0x0000000000008000
-#define MASK_J4 0x0000000000080000
-#define MASK_J5 0x0000000000800000
-#define SHIFT_J0 3
-#define SHIFT_J1 7
-#define SHIFT_J2 11
-#define SHIFT_J3 15
-#define SHIFT_J4 19
-#define SHIFT_J5 23
-#define MASK_S  0x1111111111111111
-#define MASK_S0 0x7777777777777777
-#define MASK_E  0xf
-#define SHIFT_MAX 63
-#endif
-/*
-  MASK_J  0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 1000 1000 1000 1000 1000 1000
-  MASK_J0 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 1000
-  MASK_J1 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 1000 0000
-  MASK_J2 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 1000 0000 0000
-  MASK_J3 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 1000 0000 0000 0000
-  MASK_J4 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 1000 0000 0000 0000 0000
-  MASK_J5 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 1000 0000 0000 0000 0000 0000
-  MASK_S  0001 0001 0001 0001 0001 0001 0001 0001 0001 0001 0001 0001 0001 0001 0001 0001
-  MASK_S0 0111 0111 0111 0111 0111 0111 0111 0111 0111 0111 0111 0111 0111 0111 0111 0111
-  iter0      *    *    *    *    *    *    *    *    *    *    *    *    *    *    *    *
-  iter1     *    *    *    *    *    *    *    *    *    *    *    *    *    *    *    *
-  iter2    *    *    *    *    *    *    *    *    *    *    *    *    *    *    *    *
 */
 
 

@@ -1,6 +1,3 @@
-#include "COPYING"
-
-
 __device__ void
 gpu_init_temp (PROB_DATATYPE prob[NBETA_PER_WORD][NPROB_MAX], const int bidx)
 {

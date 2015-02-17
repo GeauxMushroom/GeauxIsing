@@ -1,8 +1,3 @@
-#include "COPYING"
-
-
-
-
 // initilize seeds for curand
 // CURAND_Library.pdf, pp21
 __global__ void

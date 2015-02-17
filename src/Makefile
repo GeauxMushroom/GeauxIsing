@@ -11,16 +11,12 @@ CPP = h5pcc
 CXX = nvcc
 MPICC = h5pcc
 
-# -v
-#ARCHFLAG = -gencode arch=compute_20,code=sm_20
-ARCHFLAG= -gencode=arch=compute_20,code=\"sm_20,compute_20\"
+ARCHFLAG = -gencode arch=compute_20,code=sm_20
 OPTFLAG0 = -O0 -g -G
 OPTFLAG1 = -O0
 OPTFLAG2 = -O2
 OPTFLAG3 = -O3
-ASMFLAG = -ptx
 PROFFLAG = --ptxas-options=-v -keep
-#WFLAGS = -Wall # not supported by nvcc
 
 CFLAGS = $(INC) -std=c99
 CPPFLAGS = $(INC)
@@ -29,7 +25,7 @@ CXXFLAGS = $(INC) $(LIB) $(LIBDIR) $(ARCHFLAG)
 srcdir = src
 gpusrc = kernel.cu
 cpusrc = host_main.cpp host_func.cpp host_launcher.cu
-exec = mpi_ising #postprocess_ea postprocess_ea2 postprocess_q postprocess_qq postprocess_r12
+exec = mpi_ising
 
 default: $(exec) 
 
@@ -57,10 +53,6 @@ mpi_ising: host_main.o mpiprocess.o host_func.o host_launcher.o kernel.o
 ising: host_main.o host_func.o host_launcher.o kernel.o
 	$(CXX) $(OPTFLAG2) $(CXXFLAGS) -o $@ $^
 
-postprocess_%: postprocess_%.c
-	$(CPP) -O2 $(CPPFLAGS) -o $@ $<
-
-
 
 prof: $(gpusrc) $(cpusrc)
 	$(CXX) $(OPTFLAG1) $(CXXFLAGS) $(PROFFLAG) $^
@@ -70,10 +62,6 @@ profclean: $(gpusrc) $(cpusrc)
 
 g_ising: $(gpusrc) $(cpusrc)
 	$(CXX) $(OPTFLAG0) $(CXXFLAGS) -o $@ $^
-
-#ptx: $(src)
-#	$(CXX) $(OPTFLAG1) $(CXXFLAGS) $(ASMFLAG) $^
-
 
 
 install:

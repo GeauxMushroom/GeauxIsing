@@ -1,6 +1,3 @@
-#include "COPYING"
-
-
 #include <stdio.h>
 
 #include <cuda.h>
